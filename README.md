@@ -3,11 +3,14 @@
 A sophisticated, globe-scale money transfer platform built with microservices architecture, designed to handle millions of transactions per day with sub-second latency.
 
 ## Architecture
-
 - **5 Core Microservices** with clear separation of concerns
 - **Event-driven architecture** using Apache Kafka
 - **Sub-second latency** through strategic caching and reactive programming
 - **Production-ready** with comprehensive monitoring and observability
+
+## Diagrams
+- [Transaction Lifecycle](./diagrams/transaction-lifecycle.png)
+- [High‑level architecture](./diagrams/high-level-arch.png)
 
 ## Technology Stack
 
@@ -232,7 +235,7 @@ make infra-down      # Stop services (preserve data)
 make infra-restart   # Restart all services
 make infra-status    # Check service status
 make infra-logs      # View service logs
-make infra-clean     # Remove everything (DESTRUCTIVE)
+make infra-clean     # Remove all created resources 
 make infra-force-clean # Force clean everything
 
 # Database Access
