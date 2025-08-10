@@ -1,24 +1,77 @@
-# Compiled class file
-*.class
+# IMPORTANT: Security files - NEVER commit these
+.env
+.env.local
+.env.*.local
+*.env
+!.env.example
+.credentials.txt
+secrets/
+*.key
+*.pem
+*.p12
+*.jks
+*.keystore
+*.truststore
 
-# Log file
+# Gradle
+.gradle/
+build/
+!gradle/wrapper/gradle-wrapper.jar
+!**/src/main/**/build/
+!**/src/test/**/build/
+
+# IDE
+.idea/
+*.iws
+*.iml
+*.ipr
+out/
+.vscode/
+.project
+.classpath
+.settings/
+bin/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# Application
 *.log
+*.pid
+*.seed
+*.pid.lock
+logs/
+target/
 
-# BlueJ files
-*.ctxt
+# Docker
+docker/volumes/
+*.dockerfile.swp
 
-# Mobile Tools for Java (J2ME)
-.mtj.tmp/
+# Kubernetes
+*.kubeconfig
+**/secrets.yaml
+**/secrets-*.yaml
 
-# Package Files #
-*.jar
-*.war
-*.nar
-*.ear
-*.zip
-*.tar.gz
-*.rar
+# Node (for JHipster)
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
 
-# virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
-hs_err_pid*
-replay_pid*
+# Testing
+test-results/
+test-output/
+coverage/
+.nyc_output/
+
+# Temporary files
+*.tmp
+*.temp
+*.bak
+*.backup
+*.old
