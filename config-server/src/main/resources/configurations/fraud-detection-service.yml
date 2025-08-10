@@ -1,0 +1,61 @@
+server:
+  port: ${FRAUD_SERVICE_PORT:8083}
+
+spring:
+  application:
+    name: fraud-detection-service
+  datasource:
+    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/fraud
+    username: ${DB_USER:moneyplatform}
+    password: ${DB_PASSWORD}
+  jpa:
+    hibernate:
+      ddl-auto: validate
+
+# Fraud detection configuration
+fraud:
+  detection:
+    # ML model configuration
+    ml-model:
+      enabled: true
+      model-path: /models/fraud-detection-v2.pkl
+      threshold: 0.7
+
+    # Rule-based checks
+    rules:
+      enabled: true
+      max-transaction-amount: 50000
+      max-daily-amount: 100000
+      max-transactions-per-hour: 10
+      suspicious-countries:
+        - XX
+        - YY
+      high-risk-merchants: []
+
+    # Velocity checks
+    velocity:
+      enabled: true
+      window-minutes: 60
+      max-transactions: 5
+      max-amount: 25000
+
+    # Device fingerprinting
+    device-fingerprint:
+      enabled: true
+      track-ip: true
+      track-user-agent: true
+
+    # Response modes
+    mode: SYNC  # SYNC or ASYNC
+    async-timeout-ms: 100
+
+kafka:
+  topics:
+    fraud-check-request: fraud-check-request
+    fraud-check-response: fraud-check-response
+    fraud-alerts: fraud-alerts
+
+cache:
+  fraud-score-cache:
+    ttl: 300
+    max-size: 10000

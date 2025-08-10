@@ -1,0 +1,46 @@
+server:
+  port: ${BANKING_SERVICE_PORT:8082}
+
+spring:
+  application:
+    name: banking-partner-service
+  datasource:
+    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/banking
+    username: ${DB_USER:moneyplatform}
+    password: ${DB_PASSWORD}
+  jpa:
+    hibernate:
+      ddl-auto: validate
+
+# Banking partner integration settings
+banking:
+  partners:
+    - id: stripe
+      name: Stripe
+      enabled: true
+      api-url: https://api.stripe.com/v1
+      api-key: ${STRIPE_API_KEY:sk_test_xxx}
+      timeout: 5000
+      priority: 1
+    - id: plaid
+      name: Plaid
+      enabled: true
+      api-url: https://api.plaid.com
+      client-id: ${PLAID_CLIENT_ID}
+      secret: ${PLAID_SECRET}
+      timeout: 5000
+      priority: 2
+
+  routing:
+    strategy: LEAST_COST  # LEAST_COST, FASTEST, ROUND_ROBIN
+    fallback-enabled: true
+
+  retry:
+    max-attempts: 3
+    backoff-ms: 1000
+
+kafka:
+  topics:
+    banking-events: banking-events
+    payment-status: payment-status
+    partner-health: partner-health

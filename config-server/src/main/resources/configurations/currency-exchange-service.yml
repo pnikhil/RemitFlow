@@ -1,0 +1,65 @@
+server:
+  port: ${EXCHANGE_SERVICE_PORT:8084}
+
+spring:
+  application:
+    name: currency-exchange-service
+  datasource:
+    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/exchange
+    username: ${DB_USER:moneyplatform}
+    password: ${DB_PASSWORD}
+  jpa:
+    hibernate:
+      ddl-auto: validate
+
+# Exchange service configuration
+exchange:
+  rates:
+    # Rate providers
+    providers:
+      - name: primary-provider
+        url: https://api.exchangerate-api.com/v4
+        api-key: ${EXCHANGE_API_KEY}
+        priority: 1
+        enabled: true
+      - name: fallback-provider
+        url: https://api.fixer.io
+        api-key: ${FIXER_API_KEY}
+        priority: 2
+        enabled: true
+
+    # Rate caching
+    cache:
+      enabled: true
+      ttl-seconds: 300  # 5 minutes
+      size: 100
+
+    # Update frequency
+    refresh:
+      enabled: true
+      interval-seconds: 60
+
+    # Supported currencies
+    supported-currencies:
+      - USD
+      - EUR
+      - GBP
+      - JPY
+      - CAD
+      - AUD
+      - CHF
+      - CNY
+      - INR
+
+    # Base currency
+    base-currency: USD
+
+    # Margin/spread configuration
+    margin:
+      default-percentage: 0.5
+      premium-percentage: 0.3
+
+kafka:
+  topics:
+    rate-updates: exchange-rate-updates
+    exchange-requests: exchange-requests

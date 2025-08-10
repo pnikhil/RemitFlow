@@ -1,0 +1,177 @@
+# src/main/resources/configurations/application.yml
+# Shared configuration for all RemitFlow microservices
+
+# Eureka Service Discovery
+eureka:
+  client:
+    service-url:
+      defaultZone: ${EUREKA_SERVER:http://localhost:8761/eureka/}
+    register-with-eureka: true
+    fetch-registry: true
+  instance:
+    prefer-ip-address: true
+    instance-id: ${spring.application.name}:${spring.cloud.client.hostname}:${server.port}:${random.value}
+    lease-renewal-interval-in-seconds: 30
+    lease-expiration-duration-in-seconds: 90
+
+# Database Configuration (shared defaults)
+spring:
+  datasource:
+    hikari:
+      connection-timeout: 20000
+      maximum-pool-size: 10
+      minimum-idle: 5
+      idle-timeout: 300000
+      max-lifetime: 1200000
+      auto-commit: true
+  jpa:
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
+        jdbc:
+          lob:
+            non_contextual_creation: true
+    # Add these for better performance
+    open-in-view: false
+    hibernate:
+      connection:
+        provider_disables_autocommit: true
+
+# Kafka Configuration
+spring.kafka:
+  bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+  consumer:
+    group-id: ${spring.application.name}
+    auto-offset-reset: earliest
+    key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+    value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+    properties:
+      spring.json.trusted.packages: "com.remitflow.*"
+  producer:
+    key-serializer: org.apache.kafka.common.serialization.StringSerializer
+    value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+    properties:
+      spring.json.type.mapping: "event:com.remitflow.common.event.BaseEvent"
+    # Add these for reliability
+    acks: all
+    retries: 3
+    batch-size: 16384
+    linger-ms: 1
+    buffer-memory: 33554432
+
+# Redis Configuration
+spring.data.redis:
+  host: ${REDIS_HOST:localhost}
+  port: ${REDIS_PORT:6379}
+  password: ${REDIS_PASSWORD}
+  timeout: 2000ms
+  lettuce:
+    pool:
+      max-active: 8
+      max-idle: 8
+      min-idle: 0
+      max-wait: -1ms
+
+# Cache Configuration (using Redis)
+spring.cache:
+  type: redis
+  redis:
+    time-to-live: 600000  # 10 minutes default TTL
+    cache-null-values: false
+
+# Actuator Configuration
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus,env,configprops
+      base-path: /actuator
+  endpoint:
+    health:
+      show-details: when-authorized
+      probes:
+        enabled: true
+  metrics:
+    export:
+      prometheus:
+        enabled: true
+    tags:
+      application: ${spring.application.name}
+  # Add distributed tracing
+  tracing:
+    sampling:
+      probability: 1.0
+
+# Distributed Tracing with Zipkin
+spring.zipkin:
+  base-url: ${ZIPKIN_URL:http://localhost:9411}
+  enabled: true
+
+# Resilience4j Circuit Breaker
+resilience4j.circuitbreaker:
+  configs:
+    default:
+      sliding-window-size: 10
+      minimum-number-of-calls: 5
+      failure-rate-threshold: 50
+      wait-duration-in-open-state: 30s
+      permitted-number-of-calls-in-half-open-state: 3
+      automatic-transition-from-open-to-half-open-enabled: true
+      register-health-indicator: true
+      # Add event consumer for monitoring
+      event-consumer-buffer-size: 10
+
+# Resilience4j Retry
+resilience4j.retry:
+  configs:
+    default:
+      max-attempts: 3
+      wait-duration: 1s
+      retry-exceptions:
+        - java.net.SocketTimeoutException
+        - java.io.IOException
+      ignore-exceptions:
+        - com.remitflow.common.exception.BusinessException
+
+# Resilience4j Rate Limiter (for API protection)
+resilience4j.ratelimiter:
+  configs:
+    default:
+      limit-for-period: 100
+      limit-refresh-period: 1s
+      timeout-duration: 0s
+
+# OpenAPI/Swagger Configuration
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    enabled: true
+    # Add these for better UI
+    display-request-duration: true
+    groups-order: DESC
+    operations-sorter: method
+
+# Logging Configuration
+logging:
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+    file: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+  level:
+    com.remitflow: DEBUG
+    org.springframework: INFO
+    org.hibernate: INFO
+    # Add SQL logging for debugging (disable in production)
+    org.hibernate.SQL: DEBUG
+    org.hibernate.type.descriptor.sql.BasicBinder: TRACE
+
+# Security Headers (for all services)
+server:
+  compression:
+    enabled: true
+    mime-types: text/html,text/plain,text/css,application/javascript,application/json
+  http2:
+    enabled: true
+  forward-headers-strategy: native
