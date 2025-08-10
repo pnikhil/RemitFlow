@@ -1,0 +1,15 @@
+-- Create databases for each service
+CREATE DATABASE IF NOT EXISTS transactions;
+CREATE DATABASE IF NOT EXISTS banking;
+CREATE DATABASE IF NOT EXISTS fraud;
+CREATE DATABASE IF NOT EXISTS exchange;
+CREATE DATABASE IF NOT EXISTS audit;
+CREATE DATABASE IF NOT EXISTS config_server;
+
+-- Grant privileges
+GRANT ALL PRIVILEGES ON DATABASE transactions TO moneyplatform;
+GRANT ALL PRIVILEGES ON DATABASE banking TO moneyplatform;
+GRANT ALL PRIVILEGES ON DATABASE fraud TO moneyplatform;
+GRANT ALL PRIVILEGES ON DATABASE exchange TO moneyplatform;
+GRANT ALL PRIVILEGES ON DATABASE audit TO moneyplatform;
+GRANT ALL PRIVILEGES ON DATABASE config_server TO moneyplatform;
