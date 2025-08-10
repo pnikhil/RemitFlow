@@ -1,0 +1,166 @@
+# config-server/src/main/resources/configurations/gateway-service.yml
+# API Gateway Service Configuration
+
+server:
+  port: ${GATEWAY_PORT:8080}
+  netty:
+    connection-timeout: 10s
+  http2:
+    enabled: true
+
+spring:
+  application:
+    name: gateway-service
+  cloud:
+    gateway:
+      # Enable discovery locator for automatic route discovery
+      discovery:
+        locator:
+          enabled: true
+          lower-case-service-id: true
+          predicates:
+            - name: Path
+              args:
+                pattern: "'/api/'+serviceId+'/**'"
+          filters:
+            - name: RewritePath
+              args:
+                regexp: "'/api/' + serviceId + '/(?<remaining>.*)'"
+                replacement: "'/${remaining}'"
+      
+      # Custom routes with more control
+      routes:
+        # Transaction Service Route
+        - id: transaction-service
+          uri: lb://transaction-orchestrator-service
+          predicates:
+            - Path=/api/transactions/**
+          filters:
+            - StripPrefix=2
+            - name: CircuitBreaker
+              args:
+                name: transaction-service
+                fallbackUri: forward:/fallback/transactions
+            - name: Retry
+              args:
+                retries: 3
+                statuses: BAD_GATEWAY,SERVICE_UNAVAILABLE
+                methods: GET,POST
+                backoff:
+                  firstBackoff: 10ms
+                  maxBackoff: 50ms
+                  factor: 2
+        
+        # Banking Service Route
+        - id: banking-service
+          uri: lb://banking-partner-service
+          predicates:
+            - Path=/api/banking/**
+          filters:
+            - StripPrefix=2
+            - name: CircuitBreaker
+              args:
+                name: banking-service
+                fallbackUri: forward:/fallback/banking
+            - name: RequestRateLimiter
+              args:
+                redis-rate-limiter.replenishRate: 10
+                redis-rate-limiter.burstCapacity: 20
+                redis-rate-limiter.requestedTokens: 1
+        
+        # Fraud Detection Service Route
+        - id: fraud-service
+          uri: lb://fraud-detection-service
+          predicates:
+            - Path=/api/fraud/**
+          filters:
+            - StripPrefix=2
+            - name: CircuitBreaker
+              args:
+                name: fraud-service
+        
+        # Currency Exchange Service Route
+        - id: exchange-service
+          uri: lb://currency-exchange-service
+          predicates:
+            - Path=/api/exchange/**
+          filters:
+            - StripPrefix=2
+            - AddResponseHeader=X-Response-From, Exchange-Service
+        
+        # Audit Service Route
+        - id: audit-service
+          uri: lb://audit-compliance-service
+          predicates:
+            - Path=/api/audit/**
+          filters:
+            - StripPrefix=2
+            - PreserveHostHeader
+      
+      # Default filters for all routes
+      default-filters:
+        - DedupeResponseHeader=Access-Control-Allow-Origin Access-Control-Allow-Credentials
+        - AddRequestHeader=X-Request-Id, \${random.uuid}
+        - AddRequestHeader=X-Gateway-Time, \${spring.cloud.gateway.request.time}
+      
+      # Global CORS configuration
+      globalcors:
+        corsConfigurations:
+          '[/**]':
+            allowedOriginPatterns: "*"
+            allowedMethods:
+              - GET
+              - POST
+              - PUT
+              - DELETE
+              - OPTIONS
+              - PATCH
+            allowedHeaders: "*"
+            allowCredentials: true
+            maxAge: 3600
+      
+      # HTTP client configuration
+      httpclient:
+        connect-timeout: 5000
+        response-timeout: 10s
+        pool:
+          type: elastic
+          max-idle-time: 15s
+          max-life-time: 60s
+
+# Circuit Breaker configuration
+resilience4j:
+  circuitbreaker:
+    configs:
+      default:
+        sliding-window-size: 10
+        minimum-number-of-calls: 5
+        failure-rate-threshold: 50
+        wait-duration-in-open-state: 30s
+        permitted-number-of-calls-in-half-open-state: 3
+    instances:
+      transaction-service:
+        base-config: default
+      banking-service:
+        base-config: default
+      fraud-service:
+        base-config: default
+        failure-rate-threshold: 60  # More tolerant for fraud service
+
+# Rate Limiter configuration (using Redis)
+spring.cloud.gateway.redis:
+  enabled: true
+
+# Security configuration (if using OAuth2/JWT)
+spring.security:
+  oauth2:
+    resourceserver:
+      jwt:
+        jwk-set-uri: ${JWT_JWK_SET_URI:http://localhost:8080/auth/realms/remitflow/protocol/openid-connect/certs}
+
+# Logging
+logging:
+  level:
+    org.springframework.cloud.gateway: DEBUG
+    org.springframework.web.reactive: DEBUG
+    reactor.netty: DEBUG

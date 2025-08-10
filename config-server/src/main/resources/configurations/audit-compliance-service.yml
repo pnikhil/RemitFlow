@@ -1,0 +1,61 @@
+server:
+  port: ${AUDIT_SERVICE_PORT:8085}
+
+spring:
+  application:
+    name: audit-compliance-service
+  datasource:
+    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/audit
+    username: ${DB_USER:moneyplatform}
+    password: ${DB_PASSWORD}
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        # For audit, we never delete records
+        enable_lazy_load_no_trans: false
+
+# Audit configuration
+audit:
+  # Event sourcing
+  event-sourcing:
+    enabled: true
+    snapshot-frequency: 100
+
+  # Retention policies
+  retention:
+    transaction-days: 2555  # 7 years
+    audit-log-days: 3650    # 10 years
+
+  # Compliance checks
+  compliance:
+    aml:
+      enabled: true
+      screening-api: ${AML_API_URL}
+      api-key: ${AML_API_KEY}
+
+    kyc:
+      enabled: true
+      verification-required-amount: 1000
+
+    reporting:
+      enabled: true
+      regulatory-bodies:
+        - FINCEN
+        - FATF
+
+    pii:
+      encryption-enabled: true
+      masking-enabled: true
+
+kafka:
+  topics:
+    audit-events: audit-events
+    compliance-alerts: compliance-alerts
+    regulatory-reports: regulatory-reports
+
+# MongoDB configuration for audit logs (optional)
+spring.data.mongodb:
+  uri: ${MONGODB_URI:mongodb://localhost:27017/audit}
+  auto-index-creation: true

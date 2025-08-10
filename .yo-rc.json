@@ -1,0 +1,29 @@
+{
+  "generator-jhipster": {
+    "baseName": "remoteFlow",
+    "applicationType": "microservice",
+    "packageName": "com.remitflow",
+    "packageFolder": "com/remitflow",
+    "authenticationType": "jwt",
+    "cacheProvider": "redis",
+    "enableHibernateCache": true,
+    "databaseType": "sql",
+    "devDatabaseType": "postgresql",
+    "prodDatabaseType": "postgresql",
+    "serviceDiscoveryType": "eureka",
+    "buildTool": "gradle",
+    "enableSwaggerCodegen": true,
+    "serverPort": "8080",
+    "skipClient": true,
+    "skipUserManagement": false,
+    "enableTranslation": false,
+    "testFrameworks": ["junit5", "mockito"],
+    "jhiPrefix": "mt",
+    "entitySuffix": "",
+    "dtoSuffix": "DTO",
+    "searchEngine": false,
+    "messageBroker": "kafka",
+    "reactive": false,
+    "jwtSecretKey": "YourBase64EncodedSecretKeyHereThatIsAtLeast256BitsLong"
+  }
+}

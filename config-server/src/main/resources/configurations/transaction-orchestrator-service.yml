@@ -1,0 +1,136 @@
+# config-server/src/main/resources/configurations/transaction-orchestrator-service.yml
+# Transaction Orchestrator Service Configuration
+
+server:
+  port: ${TRANSACTION_SERVICE_PORT:8081}
+
+spring:
+  application:
+    name: transaction-orchestrator-service
+  
+  # Database configuration
+  datasource:
+    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/transactions
+    username: ${DB_USER:moneyplatform}
+    password: ${DB_PASSWORD}
+    driver-class-name: org.postgresql.Driver
+  
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        default_batch_fetch_size: 16
+        order_inserts: true
+        order_updates: true
+        jdbc:
+          batch_size: 25
+          batch_versioned_data: true
+    show-sql: false
+  
+  # Liquibase for database migrations
+  liquibase:
+    change-log: classpath:db/changelog/db.changelog-master.xml
+    enabled: true
+  
+  # Kafka configuration for event streaming
+  kafka:
+    producer:
+      transaction-id-prefix: tx-orchestrator-
+      enable-idempotence: true
+    consumer:
+      isolation-level: read_committed
+      enable-auto-commit: false
+    streams:
+      application-id: transaction-orchestrator
+      state-dir: /tmp/kafka-streams/transaction-orchestrator
+
+# Transaction-specific Kafka topics
+kafka:
+  topics:
+    transaction-events: transaction-events
+    transaction-commands: transaction-commands
+    transaction-status: transaction-status
+    fraud-check-request: fraud-check-request
+    fraud-check-response: fraud-check-response
+    payment-initiated: payment-initiated
+    payment-completed: payment-completed
+    transaction-saga: transaction-saga
+
+# Transaction processing configuration
+transaction:
+  processing:
+    # Timeout for transaction completion
+    timeout-seconds: 30
+    # Maximum retry attempts for failed transactions
+    max-retry-attempts: 3
+    # Batch processing
+    batch-size: 100
+    batch-timeout-ms: 5000
+  
+  # Saga orchestration settings
+  saga:
+    enabled: true
+    timeout-seconds: 60
+    compensation-enabled: true
+
+  # Transaction limits
+  limits:
+    max-amount-per-transaction: 1000000
+    max-transactions-per-day: 100
+    max-amount-per-day: 5000000
+  
+  # State machine configuration
+  state-machine:
+    persist: true
+    auto-startup: true
+
+# Caching configuration
+cache:
+  transaction-cache:
+    ttl: 300  # 5 minutes
+    max-size: 1000
+  
+  account-cache:
+    ttl: 600  # 10 minutes
+    max-size: 500
+
+# Async configuration
+async:
+  core-pool-size: 10
+  max-pool-size: 50
+  queue-capacity: 100
+  thread-name-prefix: tx-async-
+
+# Integration endpoints
+integration:
+  banking-service:
+    url: http://banking-partner-service
+    timeout: 5000
+    retry-attempts: 3
+  
+  fraud-service:
+    url: http://fraud-detection-service
+    timeout: 3000
+    retry-attempts: 2
+  
+  exchange-service:
+    url: http://currency-exchange-service
+    timeout: 2000
+    retry-attempts: 3
+
+# Monitoring
+monitoring:
+  metrics:
+    transaction:
+      enabled: true
+      histogram: true
+      percentiles: 0.5,0.95,0.99
+      sla: 100,200,500,1000,2000,5000
+
+# Logging
+logging:
+  level:
+    com.remitflow.transaction: DEBUG
+    org.springframework.kafka: INFO
+    org.springframework.statemachine: DEBUG

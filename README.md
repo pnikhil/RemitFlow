@@ -2,7 +2,7 @@
 
 A sophisticated, globe-scale money transfer platform built with microservices architecture, designed to handle millions of transactions per day with sub-second latency.
 
-## 🏗 Architecture
+## Architecture
 
 - **5 Core Microservices** with clear separation of concerns
 - **Event-driven architecture** using Apache Kafka
@@ -72,7 +72,7 @@ A sophisticated, globe-scale money transfer platform built with microservices ar
 - **ArgoCD** for GitOps deployment
 - **SonarQube** for code quality analysis
 
-## 📦 Services
+## Services
 
 1. **Gateway Service** - API Gateway with rate limiting and routing
 2. **Transaction Orchestrator** - Core transaction lifecycle management
@@ -81,7 +81,7 @@ A sophisticated, globe-scale money transfer platform built with microservices ar
 5. **Currency Exchange Engine** - Real-time FX rates and conversion
 6. **Audit & Compliance Service** - Regulatory compliance and audit trails
 
-## 🎯 Complete Setup Guide
+## Complete Setup Guide
 
 ### Quick Start (Automatic Setup)
 
@@ -287,7 +287,7 @@ jhipster --skip-client --skip-user-management
 ./gradlew test
 ```
 
-## 🧹 Complete Cleanup
+## Complete Cleanup
 
 To remove everything (containers, volumes, data):
 

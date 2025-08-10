@@ -1,0 +1,48 @@
+server:
+  port: ${CONFIG_SERVER_PORT:8888}
+
+spring:
+  application:
+    name: config-server
+  profiles:
+    active: native
+  cloud:
+    config:
+      server:
+        native:
+          search-locations:
+            - classpath:/configurations
+            - classpath:/configurations/{application}
+            - file:./configurations
+            - file:./configurations/{application}
+        # Encryption/Decryption
+        encrypt:
+          enabled: true
+  security:
+    user:
+      name: ${CONFIG_SERVER_USER:admin}
+      password: ${CONFIG_SERVER_PASSWORD:admin}
+
+# Encryption key for sensitive properties
+encrypt:
+  key: ${CONFIG_SERVER_ENCRYPT_KEY:DefaultEncryptKey}
+
+# Actuator endpoints
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus,refresh
+  endpoint:
+    health:
+      show-details: always
+  metrics:
+    export:
+      prometheus:
+        enabled: true
+
+# Logging
+logging:
+  level:
+    org.springframework.cloud.config: INFO
+    org.springframework.security: DEBUG
